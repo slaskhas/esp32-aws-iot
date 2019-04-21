@@ -2,7 +2,11 @@
 
 [![Build Status](https://travis-ci.org/jandelgado/esp32-aws-iot.svg?branch=master)](https://travis-ci.org/jandelgado/esp32-aws-iot)
 
-This is a fork of https://github.com/ExploreEmbedded/Hornbill-Examples
+This is a fork of https://github.com/jandelgado/esp32-aws-iot. Main difference
+is adding a library.properties file, to make it easier to use directly
+in the Arduino environment.
+
+In turn that is a fork of https://github.com/ExploreEmbedded/Hornbill-Examples
 focusing on the AWS_IOT library and removing everything else. The code was
 also upgraded to AWS IoT Device SDK v3.0.1. 
 
@@ -15,9 +19,7 @@ the `AWS_IOT` class from the client code. This makes the library easier usable.
 ## pubSubTest Example
 
 Under [examples/pubSubTest](examples/pubSubTest) the original PubSub example of
-the hornbill repository is included, with the configuration externalized to a
-separate file [config.h-dist](examples/pubSubTest/config.h-dist). To build the
-example, copy the `config.h-dist` file to a file called `config.h` and modify
+the hornbill repository is included . To build the example, edit the `config.h`
 to fit your configuration:
 
 * add WiFi configuration
@@ -27,7 +29,11 @@ to fit your configuration:
 
 ### Build
 
-A plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
+Click `Clone or download` -> Download ZIP and save the library. In the Arduino
+environemnt choose Sketch -> Include Library -> Add .ZIP Library and select the
+downloaded file.
+
+Also a plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
 
 * run `make upload monitor` to build and upload the example to the ESP32 and
   start the serial monitor afterwards to see what is going on.
