@@ -29,19 +29,29 @@ and that both those copyright notices and this permission notice appear in suppo
 #ifndef _HORNBILL_AWS_IOT_LIB_H_
 #define _HORNBILL_AWS_IOT_LIB_H_
 
+#include "aws_iot_shadow_interface.h"
+
 typedef void (*pSubCallBackHandler_t)(char *topicName, int payloadLen, char *payLoad);
+
+
+static char deleteAcceptedTopic[MAX_SHADOW_TOPIC_LENGTH_BYTES];
+
+void aws_iot_shadow_task(void *param);
 
 class AWS_IOT{
     
-    private:
+ private:
     
     public:
     int connect(const char *hostAddress, const char *clientID, 
                 const char *aws_root_ca_pem, 
                 const char *certificate_pem_crt, 
                 const char *private_pem_key);
+    int attach_shadow(const ShadowConnectParameters_t*, jsonStruct_t *pStruct);
     int publish(const char *pubtopic, const char *pubPayLoad);
     int subscribe(const char *subTopic, pSubCallBackHandler_t pSubCallBackHandler);
+    int shadow_yield(int t);
+    int shadow_update(char *JsonDocumentBuffer);
 };
 
 

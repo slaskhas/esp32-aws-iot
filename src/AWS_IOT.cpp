@@ -39,6 +39,8 @@ and that both those copyright notices and this permission notice appear in suppo
 #include "aws_iot_mqtt_client.h"
 #include "aws_iot_mqtt_client_interface.h"
 
+#include "aws_iot_shadow_records.h"
+#include "aws_iot_shadow_json.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -50,8 +52,6 @@ and that both those copyright notices and this permission notice appear in suppo
 #include "esp_vfs_fat.h"
 #include "driver/sdmmc_host.h"
 
-
- 
 static const char *TAG = "AWS_IOT";
 char AWS_IOT_HOST_ADDRESS[128];
 
@@ -60,6 +60,23 @@ IoT_Publish_Message_Params paramsQOS0;
 pSubCallBackHandler_t subApplCallBackHandler = 0;
 
 void aws_iot_task(void *param);
+
+static void ShadowUpdateStatusCallback(const char *pThingName, ShadowActions_t action, Shadow_Ack_Status_t status,
+								const char *pReceivedJsonDocument, void *pContextData) {
+	IOT_UNUSED(pThingName);
+	IOT_UNUSED(action);
+	IOT_UNUSED(pReceivedJsonDocument);
+	IOT_UNUSED(pContextData);
+
+	if(SHADOW_ACK_TIMEOUT == status) {
+		IOT_INFO("Update Timeout--");
+	} else if(SHADOW_ACK_REJECTED == status) {
+		IOT_INFO("Update RejectedXX");
+	} else if(SHADOW_ACK_ACCEPTED == status) {
+		IOT_INFO("Update Accepted !!");
+	}
+}
+
 
 void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, uint16_t topicNameLen,
         IoT_Publish_Message_Params *params, void *pData) 
@@ -98,7 +115,7 @@ void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, ui
     }
 
 
-    int AWS_IOT::connect(const char *hostAddress, const char *clientID, 
+int AWS_IOT::connect(const char *hostAddress, const char *clientID, 
                     const char *aws_root_ca_pem, 
                     const char *certificate_pem_crt, 
                     const char *private_pem_key) {
@@ -172,9 +189,54 @@ void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, ui
     }    
     
     if(rc == SUCCESS)
-    xTaskCreatePinnedToCore(&aws_iot_task, "aws_iot_task", stack_size, nullptr, 5, nullptr, 1);
+      //    xTaskCreatePinnedToCore(&aws_iot_task, "aws_iot_task", stack_size, nullptr, 5, nullptr, 1);
 
     return rc;
+}
+
+int AWS_IOT::shadow_update(char *JsonDocumentBuffer) {
+  aws_iot_shadow_update(&client, myThingName, JsonDocumentBuffer,ShadowUpdateStatusCallback, NULL, 4, true);
+}
+
+int AWS_IOT::shadow_yield(int t) {
+ return aws_iot_shadow_yield(&client, t);
+}
+
+int AWS_IOT::attach_shadow(const ShadowConnectParameters_t *pParams, jsonStruct_t *pStruct) {
+  va_list pArgs;
+
+  IoT_Error_t rc = FAILURE;
+  resetClientTokenSequenceNum();
+  aws_iot_shadow_reset_last_received_version();
+  initDeltaTokens();
+  initializeRecords(&client);
+  if( NULL == pParams || NULL == pParams->pMqttClientId) {
+    FUNC_EXIT_RC(NULL_VALUE_ERROR);
+  }
+  snprintf(myThingName, MAX_SIZE_OF_THING_NAME, "%s", pParams->pMyThingName);
+  snprintf(mqttClientID, MAX_SIZE_OF_UNIQUE_CLIENT_ID_BYTES, "%s", pParams->pMqttClientId);
+
+  if(NULL != pParams->deleteActionHandler) {
+    snprintf(deleteAcceptedTopic, MAX_SHADOW_TOPIC_LENGTH_BYTES,
+	     "$aws/things/%s/shadow/delete/accepted", myThingName);
+    uint16_t deleteAcceptedTopicLen = (uint16_t) strlen(deleteAcceptedTopic);
+    rc = aws_iot_mqtt_subscribe(&client, deleteAcceptedTopic, deleteAcceptedTopicLen, QOS1,
+									pParams->deleteActionHandler, (void *) myThingName);
+  }
+
+  uint8_t loopc = 5;
+
+  while (loopc > 0) {
+    rc = aws_iot_shadow_register_delta(&client, pStruct);
+    if (rc == 0) {
+      loopc = 0 ;
+    }
+    else {
+      vTaskDelay( 500 / portTICK_PERIOD_MS);
+      loopc-- ;
+    };
+  };
+  return(rc);
 }
 
 
@@ -223,6 +285,24 @@ IoT_Error_t rc = SUCCESS;
         //Max time the yield function will wait for read messages
         rc = aws_iot_mqtt_yield(&client, /*200*/ 5);
         
+ 
+        
+        vTaskDelay(/*1000*/ 550 / portTICK_RATE_MS);
+    }
+}
+
+
+void aws_iot_shadow_task(void *param) {
+
+IoT_Error_t rc = SUCCESS;
+
+    while(1)
+    {
+
+
+        //Max time the yield function will wait for read messages
+        rc = aws_iot_mqtt_yield(&client, /*200*/ 5);
+        
         if(NETWORK_ATTEMPTING_RECONNECT == rc)
         {
             // If the client is attempting to reconnect we will skip the rest of the loop.
@@ -233,3 +313,4 @@ IoT_Error_t rc = SUCCESS;
         vTaskDelay(/*1000*/ 550 / portTICK_RATE_MS);
     }
 }
+
