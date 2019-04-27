@@ -52,6 +52,7 @@ class AWS_IOT{
     int subscribe(const char *subTopic, pSubCallBackHandler_t pSubCallBackHandler);
     int shadow_yield(int t);
     int shadow_update(char *JsonDocumentBuffer);
+    int shadow_disconnect(void);
 };
 
 

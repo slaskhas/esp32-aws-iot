@@ -239,6 +239,9 @@ int AWS_IOT::attach_shadow(const ShadowConnectParameters_t *pParams, jsonStruct_
   return(rc);
 }
 
+int AWS_IOT::shadow_disconnect() {
+  return aws_iot_shadow_disconnect(&client);
+};
 
 int AWS_IOT::publish(const char *pubtopic,const char *pubPayLoad)
 {
