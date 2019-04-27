@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/jandelgado/esp32-aws-iot.svg?branch=master)](https://travis-ci.org/jandelgado/esp32-aws-iot)
 
 This is a fork of https://github.com/jandelgado/esp32-aws-iot. Main difference
-is adding a library.properties file, to make it easier to use directly
-in the Arduino environment.
+is adding Shadow support and library.properties file is added,
+to make it easier to use directly in the Arduino environment.
 
 In turn that is a fork of https://github.com/ExploreEmbedded/Hornbill-Examples
 focusing on the AWS_IOT library and removing everything else. The code was
@@ -27,13 +27,26 @@ to fit your configuration:
 * add AWS thing certificate 
 * add AWS MQTT endpoint address
 
+## BasicShadow Example
+
+Under [examples/BasicShadow](examples/BasicShadow) an example of
+basic shadow support is included with one downstream signal ( a LED ) and one
+upstream (a button/switch ). Additional accentuators can be added by adding a
+jsonStruct_t for each one, optional callback function for each one, and add them
+to the `aws_iot_shadow_add_reported` call with the right parameter count to match the list.
+
+To build the example, besides the parameters mentioned for pubSubTest edit the `config.h`
+to fit your configuration:
+
+* add DEVICE_ID
+
 ### Build
 
-Click `Clone or download` -> Download ZIP and save the library. In the Arduino
-environemnt choose Sketch -> Include Library -> Add .ZIP Library and select the
+In Github click `Clone or download -> Download ZIP` and save the library. In the Arduino
+environemnt choose `Sketch -> Include Library -> Add .ZIP Library` and select the
 downloaded file.
 
-Also a plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
+A plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
 
 * run `make upload monitor` to build and upload the example to the ESP32 and
   start the serial monitor afterwards to see what is going on.
