@@ -61,6 +61,7 @@ pSubCallBackHandler_t subApplCallBackHandler = 0;
 
 void aws_iot_task(void *param);
 
+
 static void ShadowUpdateStatusCallback(const char *pThingName, ShadowActions_t action, Shadow_Ack_Status_t status,
 								const char *pReceivedJsonDocument, void *pContextData) {
 	IOT_UNUSED(pThingName);
@@ -71,7 +72,7 @@ static void ShadowUpdateStatusCallback(const char *pThingName, ShadowActions_t a
 	if(SHADOW_ACK_TIMEOUT == status) {
 		IOT_INFO("Update Timeout--");
 	} else if(SHADOW_ACK_REJECTED == status) {
-		IOT_INFO("Update RejectedXX");
+		IOT_INFO("Update Rejected");
 	} else if(SHADOW_ACK_ACCEPTED == status) {
 		IOT_INFO("Update Accepted !!");
 	}
@@ -87,7 +88,7 @@ void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, ui
 
 
 
-    void disconnectCallbackHandler(AWS_IoT_Client *pClient, void *data)
+void disconnectCallbackHandler(AWS_IoT_Client *pClient, void *data)
     {
         ESP_LOGW(TAG, "MQTT Disconnect");
         IoT_Error_t rc = FAILURE;

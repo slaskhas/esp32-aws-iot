@@ -41,18 +41,19 @@ void aws_iot_shadow_task(void *param);
 class AWS_IOT{
     
  private:
+
+ public:
     
-    public:
-    int connect(const char *hostAddress, const char *clientID, 
-                const char *aws_root_ca_pem, 
-                const char *certificate_pem_crt, 
-                const char *private_pem_key);
-    int attach_shadow(const ShadowConnectParameters_t*, jsonStruct_t *pStruct);
-    int publish(const char *pubtopic, const char *pubPayLoad);
-    int subscribe(const char *subTopic, pSubCallBackHandler_t pSubCallBackHandler);
-    int shadow_yield(int t);
-    int shadow_update(char *JsonDocumentBuffer);
-    int shadow_disconnect(void);
+  int connect(const char *hostAddress, const char *clientID, 
+	      const char *aws_root_ca_pem, 
+	      const char *certificate_pem_crt, 
+	      const char *private_pem_key);
+  int attach_shadow(const ShadowConnectParameters_t*, jsonStruct_t *pStruct);
+  int publish(const char *pubtopic, const char *pubPayLoad);
+  int subscribe(const char *subTopic, pSubCallBackHandler_t pSubCallBackHandler);
+  int shadow_yield(int t);
+  int shadow_update(char *JsonDocumentBuffer);
+  int shadow_disconnect(void);
 };
 
 
