@@ -46,7 +46,7 @@ In Github click `Clone or download -> Download ZIP` and save the library. In the
 environemnt choose `Sketch -> Include Library -> Add .ZIP Library` and select the
 downloaded file.
 
-A plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
+As an alternative the original plattformio [project](platformio.ini) and [Makefile](Makefile) is provided.
 
 * run `make upload monitor` to build and upload the example to the ESP32 and
   start the serial monitor afterwards to see what is going on.
