@@ -9,9 +9,11 @@
 #define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  1200       /* ESP32 will go to sleep for (x seconds) */
 
+#define MAX_DEVICE_ID_LEN 20
 
 gpio_num_t LED_PIN = GPIO_NUM_18;
 gpio_num_t BTN_PIN = GPIO_NUM_15;
+gpio_num_t LED_BUILTIN = GPIO_NUM_2;
 
 AWS_IOT hornbill;
 
@@ -35,6 +37,7 @@ jsonStruct_t btnHandler;
 jsonStruct_t awakeHandler;
 jsonStruct_t stateHandler;
 
+uint8_t builtInState = 0;
 uint8_t ledState = 0;
 uint8_t btnState = 0;
 uint8_t awakeState = 1;
@@ -43,6 +46,8 @@ bool shouldUpdate = true;
 bool canSleep = false;
 
 uint8_t loopCount = 0;
+
+char deviceId[MAX_DEVICE_ID_LEN];
 
 void state_Callback(const char *pJsonString, uint32_t JsonStringDataLen, jsonStruct_t *pContext) {
  
@@ -115,15 +120,25 @@ void setup() {
 
     pinMode(BTN_PIN,INPUT);
     gpio_set_pull_mode(BTN_PIN, GPIO_PULLUP_ONLY);
-    
+
+    pinMode(LED_BUILTIN,OUTPUT);
     pinMode(LED_PIN,OUTPUT);
     digitalWrite(LED_PIN,HIGH); // sink to activate up LED , so reverse 
 
     ShadowConnectParameters_t params;
 
-    params.pMyThingName = CLIENT_ID;
-    params.pMqttClientId = CLIENT_ID;
-    params.mqttClientIdLen = (uint16_t) strlen(CLIENT_ID);
+    if (strlen(CLIENT_ID)<1) {
+        uint64_t chipid=ESP.getEfuseMac();
+        sprintf(deviceId,"%04X%08X\n",(uint16_t)(chipid>>32),(uint32_t)chipid);   
+    } else {
+        strncpy(deviceId,CLIENT_ID,MAX_DEVICE_ID_LEN);
+    };
+    Serial.print("Using deviceId: ");
+    Serial.println(deviceId);  
+
+    params.pMyThingName = deviceId;
+    params.pMqttClientId = deviceId;
+    params.mqttClientIdLen = (uint16_t) strlen(deviceId);
     params.deleteActionHandler = NULL;
 
     
@@ -194,6 +209,8 @@ void setup() {
 
 void loop() {
 
+    builtInState = !builtInState;
+    digitalWrite(LED_BUILTIN, builtInState); 
     rc = hornbill.shadow_yield(200);
     if(NETWORK_ATTEMPTING_RECONNECT == rc) {
           vTaskDelay(1000 / portTICK_RATE_MS);

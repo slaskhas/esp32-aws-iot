@@ -5,7 +5,7 @@
 static auto constexpr WIFI_SSID = "YOUR_SSID";
 static auto constexpr WIFI_PASSWORD = "YOUR_PASSWORD";
 static auto constexpr HOST_ADDRESS = "DNS_OF_YOUR_MQTT_ENDPOINT";
-static auto constexpr CLIENT_ID = "CLIENTID";
+static auto constexpr CLIENT_ID = ""; // Leave blank to use hardware serialnumber
 static auto constexpr TOPIC_NAME = "some/topic";
 
 // "AWS root CA1 and C2 (RSA)", see

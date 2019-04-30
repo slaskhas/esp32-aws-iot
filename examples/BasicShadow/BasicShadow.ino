@@ -5,6 +5,8 @@
 
 #define MAX_LENGTH_OF_UPDATE_JSON_BUFFER 512
 
+#define MAX_DEVICE_ID_LEN 20
+
 gpio_num_t LED_PIN = GPIO_NUM_18;
 gpio_num_t BTN_PIN = GPIO_NUM_15;
 
@@ -21,6 +23,7 @@ jsonStruct_t ledHandler;
 jsonStruct_t btnHandler;
 uint8_t ledState = 0;
 uint8_t btnState = 0;
+char deviceId[MAX_DEVICE_ID_LEN];
 
 bool shouldUpdate = true;
 
@@ -49,9 +52,20 @@ void setup() {
 
     ShadowConnectParameters_t params;
 
-    params.pMyThingName = CLIENT_ID;
-    params.pMqttClientId = CLIENT_ID;
-    params.mqttClientIdLen = (uint16_t) strlen(CLIENT_ID);
+    if (strlen(CLIENT_ID)<1) {
+        uint64_t chipid=ESP.getEfuseMac();
+        sprintf(deviceId,"%04X%08X\n",(uint16_t)(chipid>>32),(uint32_t)chipid); 
+    } else {
+        strncpy(deviceId,CLIENT_ID,MAX_DEVICE_ID_LEN);
+    };
+    
+    Serial.print("Using deviceId: ");
+    Serial.println(deviceId);  
+
+    params.pMyThingName = deviceId;
+    params.pMqttClientId = deviceId;
+    params.mqttClientIdLen = (uint16_t) strlen(deviceId);
+
     params.deleteActionHandler = NULL;
 
     
